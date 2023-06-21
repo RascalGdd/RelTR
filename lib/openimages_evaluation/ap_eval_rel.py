@@ -30,7 +30,7 @@ import logging
 import numpy as np
 import os
 from tqdm import tqdm
-from lib.fpn.box_intersections_cpu.bbox import bbox_overlaps
+#from lib.fpn.box_intersections_cpu.bbox import bbox_overlaps
 
 logger = logging.getLogger(__name__)
 

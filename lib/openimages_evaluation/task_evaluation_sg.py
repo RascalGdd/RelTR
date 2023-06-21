@@ -13,7 +13,7 @@ import csv
 from tqdm import tqdm
 
 from functools import reduce
-from lib.fpn.box_intersections_cpu.bbox import bbox_overlaps
+#from lib.fpn.box_intersections_cpu.bbox import bbox_overlaps
 from lib.openimages_evaluation.ap_eval_rel import ap_eval, prepare_mAP_dets
 from lib.pytorch_misc import intersect_2d, argsort_desc
 
