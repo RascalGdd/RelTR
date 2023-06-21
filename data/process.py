@@ -5,7 +5,7 @@ The Visual Genome annotations are produced in the same way.
 import json
 import os
 
-root_path = 'your_path/open-imagev6/' # Download images from Rongjie's repo and unzip it.
+root_path = "/cluster/work/cvl/denfan/diandian/RelTR/data/4dor/" # Download images from Rongjie's repo and unzip it.
 
 
 with open(root_path +'annotations/'+ 'categories_dict.json') as f:
@@ -18,7 +18,7 @@ for idx, i in enumerate(obj_categories):
     category = {'supercategory': i, 'id': idx, 'name': i}
     categories.append(category)
 
-with open(root_path+'annotations/'+'vrd-train-anno.json') as f:
+with open(root_path+'annotations/'+'4DOR-train-anno.json') as f:
     train_image_list = json.load(f)
 
 counter = 0
@@ -66,7 +66,7 @@ train_database = {'images': images,
 
 print('train finish')
 
-with open(root_path+'annotations/'+'vrd-test-anno.json') as f:
+with open(root_path+'annotations/'+'4DOR-val-anno.json') as f:
     test_image_list = json.load(f)
 
 images = []
@@ -111,7 +111,7 @@ test_database = {'images': images,
 print('test finish')
 
 
-with open(root_path+'annotations/'+'vrd-val-anno.json') as f:
+with open(root_path+'annotations/'+'4DOR-val-anno.json') as f:
     val_image_list = json.load(f)
 
 images = []
