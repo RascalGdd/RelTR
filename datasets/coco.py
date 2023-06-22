@@ -12,7 +12,7 @@ import torch
 import torch.utils.data
 import torchvision
 from pycocotools import mask as coco_mask
-
+import random
 import datasets.transforms as T
 
 class CocoDetection(torchvision.datasets.CocoDetection):
@@ -36,6 +36,11 @@ class CocoDetection(torchvision.datasets.CocoDetection):
     def __getitem__(self, idx):
         img, target = super(CocoDetection, self).__getitem__(idx)
         image_id = self.ids[idx]
+        while not self.rel_annotations[str(image_id)]:
+            idx = random.randint(0, len(self.ids))
+            image_id = self.ids[idx]
+            img, target = super(CocoDetection, self).__getitem__(idx)
+
         rel_target = self.rel_annotations[str(image_id)]
 
         target = {'image_id': image_id, 'annotations': target, 'rel_annotations': rel_target}
