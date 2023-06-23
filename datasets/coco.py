@@ -104,7 +104,8 @@ class ConvertCocoPolysToMask(object):
             if num_keypoints:
                 keypoints = keypoints.view(num_keypoints, -1, 3)
 
-        keep = (boxes[:, 3] > boxes[:, 1]) & (boxes[:, 2] > boxes[:, 0])
+        # keep = (boxes[:, 3] > boxes[:, 1]) & (boxes[:, 2] > boxes[:, 0])
+        keep = (boxes[:, 3] >= boxes[:, 1]) & (boxes[:, 2] >= boxes[:, 0])
         boxes = boxes[keep]
         classes = classes[keep]
         if self.return_masks:
