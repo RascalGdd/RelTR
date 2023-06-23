@@ -159,6 +159,7 @@ def ap_eval(image_ids,
     nd = len(image_ids)
     tp = np.zeros(nd)
     fp = np.zeros(nd)
+    tp_recall = np.zeros(nd)
     gts_visited = {k: [False] * v['gt_num'] for k, v in gts.items()}
     for d in range(nd):
         R = gts[image_ids[d]]
@@ -177,40 +178,33 @@ def ap_eval(image_ids,
         if BBGT_s.size > 0:
             valid_mask = np.logical_and(LBLGT_s == lbl_s, LBLGT_o == lbl_o)
             if valid_mask.any():
-                if rel_or_phr:  # means it is evaluating relationships
-                    overlaps_s = bbox_overlaps(
-                        bb_s[None, :].astype(dtype=np.float32, copy=False),
-                        BBGT_s.astype(dtype=np.float32, copy=False))[0]
-                    overlaps_o = bbox_overlaps(
-                        bb_o[None, :].astype(dtype=np.float32, copy=False),
-                        BBGT_o.astype(dtype=np.float32, copy=False))[0]
-                    overlaps = np.minimum(overlaps_s, overlaps_o)
-                else:
-                    overlaps = bbox_overlaps(
-                        bb_r[None, :].astype(dtype=np.float32, copy=False),
-                        BBGT_r.astype(dtype=np.float32, copy=False))[0]
-                overlaps *= valid_mask
-                ovmax = np.max(overlaps)
-                jmax = np.argmax(overlaps)
-            else:
-                ovmax = 0.
-                jmax = -1
+                jmax = np.where(valid_mask == True)[0]
+                # print(jmax)
+                assert len(jmax) == 1
+                jmax = jmax[0]
 
-        if ovmax > ovthresh:
-            if not visited[jmax]:
                 tp[d] = 1.
-                visited[jmax] = 1
+                fp[d] = 0.
+                if not visited[jmax]:
+                    tp_recall[d] = 1.
+                    visited[jmax] = 1
             else:
+                # fp.append(1.)
+                # tp.append(0.)
                 fp[d] = 1.
-        else:
-            fp[d] = 1.
 
     # compute precision recall
-    fp = np.cumsum(fp)
-    tp = np.cumsum(tp)
-    rec = tp / (float(npos) + 1e-12)
-    # ground truth
-    prec = tp / np.maximum(tp + fp, np.finfo(np.float64).eps)
-    ap = get_ap(rec, prec)
+    acc_FP = np.cumsum(fp)
+    acc_TP = np.cumsum(tp)
+    acc_TP_recall = np.cumsum(tp_recall)
+    # print("fp", len(fp))
+    # print("tp", len(tp))
 
+    # ground truth
+    rec = acc_TP_recall / (npos + 1e-12)
+    prec = acc_TP / np.maximum(acc_TP + acc_FP, np.finfo(np.float64).eps)
+    # print("11111", prec)
+
+    ap = get_ap(rec, prec)
+    # print(repeat_hit_num)
     return rec, prec, ap
