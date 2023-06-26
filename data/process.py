@@ -42,7 +42,7 @@ for row in train_image_list:
 
     for index, j in enumerate(row['bbox']):
 
-        bbox = [j[0], j[1], j[2]-j[0], j[3]-j[1]] #cxcywh
+        bbox = [(j[0]+j[2])/2, (j[1]+j[3])/2, j[2]-j[0], j[3]-j[1]] #cxcywh
         area = int(bbox[2] * bbox[3])
         anno_id = counter
         counter = counter + 1
@@ -87,7 +87,7 @@ for row in val_image_list:
 
     for index, j in enumerate(row['bbox']):
 
-        bbox = [j[0], j[1], j[2]-j[0], j[3]-j[1]] #cxcywh
+        bbox = [(j[0]+j[2])/2, (j[1]+j[3])/2, j[2]-j[0], j[3]-j[1]] #cxcywh
         area = int(bbox[2] * bbox[3])
         anno_id = counter
         counter = counter + 1
