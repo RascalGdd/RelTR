@@ -152,26 +152,26 @@ def eval_rel_results(all_results, topk=100, do_val=True, do_vis=False):
             # Compute recall. It's most efficient to match once and then do recall after
             # det_boxes_so_top is (#num_rel, 8)
             # det_labels_spo_top is (#num_rel, 3)
-            pred_to_gt = _compute_pred_matches(
-                gt_labels_spo, det_labels_spo_top,
-                gt_boxes_so, det_boxes_so_top)
-            if eval_per_img:
-                for k in recalls:
-                    if len(pred_to_gt):
-                        match = reduce(np.union1d, pred_to_gt[:k])
-                    else:
-                        match = []
-                    rec_i = float(len(match)) / float(gt_labels_spo.shape[0] + 1e-12)  # in case there is no gt
-                    recalls[k].append(rec_i)
-            else:    
-                all_gt_cnt += gt_labels_spo.shape[0]
-                for k in recalls:
-                    if len(pred_to_gt):
-                        match = reduce(np.union1d, pred_to_gt[:k])
-                    else:
-                        match = []
-                    recalls[k] += len(match)
-            
+            # pred_to_gt = _compute_pred_matches(
+            #     gt_labels_spo, det_labels_spo_top,
+            #     gt_boxes_so, det_boxes_so_top)
+            # if eval_per_img:
+            #     for k in recalls:
+            #         if len(pred_to_gt):
+            #             match = reduce(np.union1d, pred_to_gt[:k])
+            #         else:
+            #             match = []
+            #         rec_i = float(len(match)) / float(gt_labels_spo.shape[0] + 1e-12)  # in case there is no gt
+            #         recalls[k].append(rec_i)
+            # else:
+            #     all_gt_cnt += gt_labels_spo.shape[0]
+            #     for k in recalls:
+            #         if len(pred_to_gt):
+            #             match = reduce(np.union1d, pred_to_gt[:k])
+            #         else:
+            #             match = []
+            #         recalls[k] += len(match)
+            #
             topk_dets[-1].update(dict(gt_boxes_sbj=gt_boxes_sbj,
                                       gt_boxes_obj=gt_boxes_obj,
                                       gt_labels_sbj=gt_labels_sbj,
@@ -179,55 +179,59 @@ def eval_rel_results(all_results, topk=100, do_val=True, do_vis=False):
                                       gt_labels_prd=gt_labels_prd))
 
     if do_val:
-        if eval_per_img:
-            for k, v in recalls.items():
-                recalls[k] = np.mean(v)
-        else:
-            for k in recalls:
-                recalls[k] = float(recalls[k]) / (float(all_gt_cnt) + 1e-12)
-        excel_str = print_stats(recalls)      
+        # if eval_per_img:
+        #     for k, v in recalls.items():
+        #         recalls[k] = np.mean(v)
+        # else:
+        #     for k in recalls:
+        #         recalls[k] = float(recalls[k]) / (float(all_gt_cnt) + 1e-12)
+        # excel_str = print_stats(recalls)
         if eval_ap:
             # prepare dets for each class
             logger.info('Preparing dets for mAP...')
-            cls_image_ids, cls_dets, cls_gts, npos = prepare_mAP_dets(topk_dets, 31)
+            cls_image_ids, cls_dets, cls_gts, npos = prepare_mAP_dets(topk_dets, 14)
             all_npos = sum(npos)
-            with open('data/vg/rel.json') as f: #TODO relative path!!!!!!!!!!!
+            with open('data/rel.json') as f: #TODO relative path!!!!!!!!!!!
                 rel_prd_cats = json.load(f)['rel_categories']
 
             rel_mAP = 0.
             w_rel_mAP = 0.
             ap_str = ''
-            for c in range(31):
+            print(len(cls_image_ids))
+            print(len(rel_prd_cats))
+            for c in range(14):
                 rec, prec, ap = ap_eval(cls_image_ids[c], cls_dets[c], cls_gts[c], npos[c], True)
                 weighted_ap = ap * float(npos[c]) / float(all_npos)
                 w_rel_mAP += weighted_ap
                 rel_mAP += ap
                 ap_str += '{:.2f}, '.format(100 * ap)
                 print('rel AP for class {}: {:.2f} ({:.6f})'.format(rel_prd_cats[c], 100 * ap, float(npos[c]) / float(all_npos)))
-            rel_mAP /= 31.
+            rel_mAP /= 14.
             print('weighted rel mAP: {:.2f}'.format(100 * w_rel_mAP))
-            excel_str += ap_str
+            print('rel mAP: {:.2f}'.format(100 * rel_mAP))
+            excel_str = ap_str
 
             phr_mAP = 0.
             w_phr_mAP = 0.
             ap_str = ''
-            for c in range(31):
+            for c in range(14):
                 rec, prec, ap = ap_eval(cls_image_ids[c], cls_dets[c], cls_gts[c], npos[c], False)
                 weighted_ap = ap * float(npos[c]) / float(all_npos)
                 w_phr_mAP += weighted_ap
                 phr_mAP += ap
                 ap_str += '{:.2f}, '.format(100 * ap)
                 print('phr AP for class {}: {:.2f} ({:.6f})'.format(rel_prd_cats[c], 100 * ap, float(npos[c]) / float(all_npos)))
-            phr_mAP /= 31.
+            phr_mAP /= 14.
             print('weighted phr mAP: {:.2f}'.format(100 * w_phr_mAP))
+            print('rel mAP: {:.2f}'.format(100 * rel_mAP))
             excel_str += ap_str
             
-            # total: 0.4 x rel_mAP + 0.2 x R@50 + 0.4 x phr_mAP
-            final_score = 0.4 * rel_mAP + 0.2 * recalls[50] + 0.4 * phr_mAP
+            # # total: 0.4 x rel_mAP + 0.2 x R@50 + 0.4 x phr_mAP
+            # final_score = 0.4 * rel_mAP + 0.2 * recalls[50] + 0.4 * phr_mAP
             
             # total: 0.4 x w_rel_mAP + 0.2 x R@50 + 0.4 x w_phr_mAP
-            w_final_score = 0.4 * w_rel_mAP + 0.2 * recalls[50] + 0.4 * w_phr_mAP
-            print('weighted final_score: {:.2f}'.format(100 * w_final_score))
+            # w_final_score = 0.4 * w_rel_mAP + 0.2 * recalls[50] + 0.4 * w_phr_mAP
+            # print('weighted final_score: {:.2f}'.format(100 * w_final_score))
             
             # get excel friendly string
             # excel_str = '{:.2f}, {:.2f}, {:.2f}, {:.2f}, '.format(100 * recalls[50], 100 * w_rel_mAP, 100 * w_phr_mAP, 100 * w_final_score) + excel_str
