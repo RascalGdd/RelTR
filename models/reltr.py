@@ -157,7 +157,7 @@ class SetCriterion(nn.Module):
         empty_weight[-1] = self.eos_coef
         self.register_buffer('empty_weight', empty_weight)
 
-        self.num_rel_classes = 51 if num_classes == 151 else 31 # Using entity class numbers to adapt rel class numbers
+        self.num_rel_classes = num_rel_classes
         empty_weight_rel = torch.ones(num_rel_classes+1)
         empty_weight_rel[-1] = self.eos_coef
         self.register_buffer('empty_weight_rel', empty_weight_rel)
@@ -375,8 +375,8 @@ class MLP(nn.Module):
 
 def build(args):
 
-    num_classes = 151 if args.dataset != 'oi' else 289 # some entity categories in OIV6 are deactivated.
-    num_rel_classes = 51 if args.dataset != 'oi' else 31
+    num_classes = 11
+    num_rel_classes = 14
 
     device = torch.device(args.device)
 

@@ -38,8 +38,8 @@ class CocoDetection(torchvision.datasets.CocoDetection):
         image_id = self.ids[idx]
         while not self.rel_annotations[str(image_id)]:
             idx = random.randint(0, len(self.ids)-1)
-            print("id length", len(self.ids))
-            print("idx", idx)
+            #print("id length", len(self.ids))
+            #print("idx", idx)
             image_id = self.ids[idx]
             img, target = super(CocoDetection, self).__getitem__(idx)
 

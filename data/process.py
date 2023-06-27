@@ -5,7 +5,7 @@ The Visual Genome annotations are produced in the same way.
 import json
 import os
 
-root_path = r"D:\DD\RelTR\data\4dor/" # Download images from Rongjie's repo and unzip it.
+root_path = r"/cluster/work/cvl/denfan/diandian/RelTR/data/4dor/" # Download images from Rongjie's repo and unzip it.
 
 
 with open(root_path +'annotations/'+ 'categories_dict.json') as f:
@@ -118,4 +118,5 @@ rel_database = {'train': train_rel,
 
 json.dump(train_database, open('train.json', 'w'))
 json.dump(val_database, open('val.json', 'w'))
+json.dump(val_database, open('test.json', 'w'))
 json.dump(rel_database, open('rel.json', 'w'))
