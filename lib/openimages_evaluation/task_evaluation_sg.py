@@ -221,6 +221,8 @@ def eval_rel_results(all_results, topk=100, do_val=True, do_vis=False):
                 phr_mAP += ap
                 ap_str += '{:.2f}, '.format(100 * ap)
                 print('phr AP for class {}: {:.2f} ({:.6f})'.format(rel_prd_cats[c], 100 * ap, float(npos[c]) / float(all_npos)))
+                print('phr prec and recall for class {}: {:.3f} {:.3f}'.format(rel_prd_cats[c], 100 * prec,
+                                                                    100 * rec))
             phr_mAP /= 14.
             print('weighted phr mAP: {:.2f}'.format(100 * w_phr_mAP))
             print('rel mAP: {:.2f}'.format(100 * rel_mAP))

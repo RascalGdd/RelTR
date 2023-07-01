@@ -29,7 +29,7 @@ class CocoDetection(torchvision.datasets.CocoDetection):
         elif 'val' in ann_file:
             self.rel_annotations = all_rels['val']
         else:
-            self.rel_annotations = all_rels['test']
+            self.rel_annotations = all_rels['val']
 
         self.rel_categories = all_rels['rel_categories']
 
