@@ -46,6 +46,7 @@ def eval_rel_results(all_results, topk=100, do_val=True, do_vis=False):
     
     topk_dets = []
     for im_i, res in enumerate(tqdm(all_results)):
+        print(res.keys())
 
         # if do_special:
         #     img_id = res['image'].split('/')[-1].split('.')[0]
