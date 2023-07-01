@@ -73,7 +73,7 @@ def eval_rel_results(all_results, topk=100, do_val=True, do_vis=False):
             det_all_labels = res['all_labels']  # (100, )
             det_all_scores = res['all_scores']  # (100, )
 
-            nms = True
+            nms = False
             one2one = True
 
             if nms:
