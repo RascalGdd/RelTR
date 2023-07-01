@@ -204,6 +204,8 @@ def evaluate_rel_batch(outputs, targets, evaluator, evaluator_list):
 def evaluate_rel_batch_oi(outputs, targets, all_results):
 
     for batch, target in enumerate(targets):
+        print(target.keys())
+        asd
         target_bboxes_scaled = rescale_bboxes(target['boxes'].cpu(), torch.flip(target['orig_size'],dims=[0]).cpu()).clone().numpy() # recovered boxes with original size
 
         sub_bboxes_scaled = rescale_bboxes(outputs['sub_boxes'][batch].cpu(), torch.flip(target['orig_size'],dims=[0]).cpu()).clone().numpy()
@@ -234,6 +236,6 @@ def evaluate_rel_batch_oi(outputs, targets, all_results):
                            'gt_obj_labels': gt_obj_labels,
                            'gt_prd_labels': relation_idx[:, 2],
                            "all_boxes": target_bboxes_scaled,
-                           "all_labels": target['labels'].cpu().clone().numpy()
+                           "all_labels": target['labels'].cpu().clone().numpy(),
                            }
         all_results.append(img_result_dict)
