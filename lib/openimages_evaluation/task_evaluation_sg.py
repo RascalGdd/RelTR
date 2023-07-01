@@ -67,57 +67,137 @@ def eval_rel_results(all_results, topk=100, do_val=True, do_vis=False):
             if 'prd_scores_spt' in res:
                 det_scores_top_spt = np.zeros(0, dtype=np.float32)
         else:
+            filtered_preds = []
+            filtered_classes = []
+            det_all_boxes = res['all_boxes']  # (100, 4)
+            det_all_labels = res['all_labels']  # (100, )
+            det_all_scores = res['all_scores']  # (100, )
+
+            nms = True
+            one2one = True
+
+            if nms:
+                keep = nms_cpu(dets=det_all_boxes, scores=det_all_scores, thresh=0.7)
+                det_all_boxes = det_all_boxes[keep]
+                det_all_labels = det_all_labels[keep]
+                det_all_scores = det_all_scores[keep]
+            print("after nms", det_all_boxes.shape)
+
+            unique_classes = np.unique(det_all_labels)
+            print("unique classes", unique_classes)
+            for unique_class in unique_classes:
+                class_mask = det_all_labels == unique_class
+                max_idx = det_all_scores[class_mask].argmax()
+                filtered_preds.append(det_all_boxes[class_mask][max_idx])
+                filtered_classes.append(unique_class)
+
+            classes = np.asarray(filtered_classes)
+            preds = np.asarray(filtered_preds)
+
+            filtered_preds_list = [list(item) for item in filtered_preds]
+            # filtered_classes_list = [list(item) for item in filtered_classes]
+
             det_boxes_sbj = res['sbj_boxes']  # (#num_rel, 4)
             det_boxes_obj = res['obj_boxes']  # (#num_rel, 4)
             det_labels_sbj = res['sbj_labels']  # (#num_rel,)
             det_labels_obj = res['obj_labels']  # (#num_rel,)
             det_scores_sbj = res['sbj_scores']  # (#num_rel,)
             det_scores_obj = res['obj_scores']  # (#num_rel,)
-            if 'prd_scores_ttl' in res:
-                det_scores_prd = res['prd_scores_ttl'] #TODO[:, 1:]
-            else:
-                det_scores_prd = res['prd_scores'] #TODO[:, 1:]
+            rel_prd_score_dist = res['prd_scores_dist']
+            rel_prd_labels = res['prd_rel_label']
+            rel_prd_score = res['prd_rel_score']
+            rel_trp_prd_scores = res['prd_trp_score']
+            # pred_rel_pair_idxs = res['pred_rel_pair_idxs']
 
-            det_labels_prd = np.argsort(-det_scores_prd, axis=1)
-            det_scores_prd = -np.sort(-det_scores_prd, axis=1)
+            if one2one:
+                save = []
+                for k in range(det_boxes_sbj.shape[0]):
+                    if list(det_boxes_sbj[k]) not in filtered_preds_list or list(
+                            det_boxes_obj[k]) not in filtered_preds_list:
+                        continue
+                    else:
+                        save.append(k)
 
-            det_scores_so = det_scores_sbj * det_scores_obj
-            det_scores_spo = det_scores_so[:, None] * det_scores_prd[:, :prd_k]
+                det_boxes_sbj = det_boxes_sbj[save]  # (#num_rel, 4)
+                det_boxes_obj = det_boxes_obj[save]  # (#num_rel, 4)
+                det_labels_sbj = det_labels_sbj[save]  # (#num_rel,)
+                det_labels_obj = det_labels_obj[save]  # (#num_rel,)
+                det_scores_sbj = det_scores_sbj[save]  # (#num_rel,)
+                det_scores_obj = det_scores_obj[save]  # (#num_rel,)
+                rel_prd_score_dist = rel_prd_score_dist[save]
+                rel_prd_labels = rel_prd_labels[save]
+                rel_prd_score = rel_prd_score[save]
+                rel_trp_prd_scores = rel_trp_prd_scores[save]
 
-            det_scores_inds = argsort_desc(det_scores_spo)[:topk]
-            det_scores_top = det_scores_spo[det_scores_inds[:, 0], det_scores_inds[:, 1]]
-            det_boxes_so_top = np.hstack(
-                (det_boxes_sbj[det_scores_inds[:, 0]], det_boxes_obj[det_scores_inds[:, 0]]))
-            det_labels_p_top = det_labels_prd[det_scores_inds[:, 0], det_scores_inds[:, 1]]
+                print("after unique")
+                print(det_boxes_sbj.shape)
+                print(det_boxes_obj.shape)
+                print(det_labels_sbj.shape)
+                print(rel_prd_score_dist.shape)
+                print(rel_trp_prd_scores.shape)
+
+
+            # det_boxes_sbj = res['sbj_boxes']  # (#num_rel, 4)
+            # det_boxes_obj = res['obj_boxes']  # (#num_rel, 4)
+            # det_labels_sbj = res['sbj_labels']  # (#num_rel,)
+            # det_labels_obj = res['obj_labels']  # (#num_rel,)
+            # det_scores_sbj = res['sbj_scores']  # (#num_rel,)
+            # det_scores_obj = res['obj_scores']  # (#num_rel,)
+            # if 'prd_scores_ttl' in res:
+            #     det_scores_prd = res['prd_scores_ttl'] #TODO[:, 1:]
+            # else:
+            #     det_scores_prd = res['prd_scores'] #TODO[:, 1:]
+            #
+            # det_labels_prd = np.argsort(-det_scores_prd, axis=1)
+            # det_scores_prd = -np.sort(-det_scores_prd, axis=1)
+            #
+            # det_scores_so = det_scores_sbj * det_scores_obj
+            # det_scores_spo = det_scores_so[:, None] * det_scores_prd[:, :prd_k]
+            #
+            # det_scores_inds = argsort_desc(det_scores_spo)[:topk]
+            # det_scores_top = det_scores_spo[det_scores_inds[:, 0], det_scores_inds[:, 1]]
+            # det_boxes_so_top = np.hstack(
+            #     (det_boxes_sbj[det_scores_inds[:, 0]], det_boxes_obj[det_scores_inds[:, 0]]))
+            # det_labels_p_top = det_labels_prd[det_scores_inds[:, 0], det_scores_inds[:, 1]]
+            # det_labels_spo_top = np.vstack(
+            #     (det_labels_sbj[det_scores_inds[:, 0]], det_labels_p_top, det_labels_obj[det_scores_inds[:, 0]])).transpose()
+            #
+            # # filter out bad relationships
+            # cand_inds = np.where(det_scores_top > 1e-08)[0]
+            # det_boxes_so_top = det_boxes_so_top[cand_inds]
+            # det_labels_spo_top = det_labels_spo_top[cand_inds]
+            # det_scores_top = det_scores_top[cand_inds]
+            #
+            # det_scores_vis = res['prd_scores'] #TODO[:, 1:][:, 1:]
+            # for i in range(det_labels_prd.shape[0]):
+            #     det_scores_vis[i] = det_scores_vis[i][det_labels_prd[i]]
+            # det_scores_vis = det_scores_vis[:, :prd_k]
+            # det_scores_top_vis = det_scores_vis[det_scores_inds[:, 0], det_scores_inds[:, 1]]
+            # det_scores_top_vis = det_scores_top_vis[cand_inds]
+            # if 'prd_scores_bias' in res:
+            #     det_scores_bias = res['prd_scores_bias'][:, 1:]
+            #     for i in range(det_labels_prd.shape[0]):
+            #         det_scores_bias[i] = det_scores_bias[i][det_labels_prd[i]]
+            #     det_scores_bias = det_scores_bias[:, :prd_k]
+            #     det_scores_top_bias = det_scores_bias[det_scores_inds[:, 0], det_scores_inds[:, 1]]
+            #     det_scores_top_bias = det_scores_top_bias[cand_inds]
+            # if 'prd_scores_spt' in res:
+            #     det_scores_spt = res['prd_scores_spt'][:, 1:]
+            #     for i in range(det_labels_prd.shape[0]):
+            #         det_scores_spt[i] = det_scores_spt[i][det_labels_prd[i]]
+            #     det_scores_spt = det_scores_spt[:, :prd_k]
+            #     det_scores_top_spt = det_scores_spt[det_scores_inds[:, 0], det_scores_inds[:, 1]]
+            #     det_scores_top_spt = det_scores_top_spt[cand_inds]
+            det_scores_top = rel_trp_prd_scores
+            det_boxes_so_top = np.hstack((det_boxes_sbj,
+                                          det_boxes_obj))
+            det_labels_p_top = rel_prd_labels - 1  # start from 0
+
             det_labels_spo_top = np.vstack(
-                (det_labels_sbj[det_scores_inds[:, 0]], det_labels_p_top, det_labels_obj[det_scores_inds[:, 0]])).transpose()
+                (det_labels_sbj, det_labels_p_top, det_labels_obj)).transpose()
 
-            # filter out bad relationships
-            cand_inds = np.where(det_scores_top > 1e-08)[0]
-            det_boxes_so_top = det_boxes_so_top[cand_inds]
-            det_labels_spo_top = det_labels_spo_top[cand_inds]
-            det_scores_top = det_scores_top[cand_inds]
 
-            det_scores_vis = res['prd_scores'] #TODO[:, 1:][:, 1:]
-            for i in range(det_labels_prd.shape[0]):
-                det_scores_vis[i] = det_scores_vis[i][det_labels_prd[i]]
-            det_scores_vis = det_scores_vis[:, :prd_k]
-            det_scores_top_vis = det_scores_vis[det_scores_inds[:, 0], det_scores_inds[:, 1]]
-            det_scores_top_vis = det_scores_top_vis[cand_inds]
-            if 'prd_scores_bias' in res:
-                det_scores_bias = res['prd_scores_bias'][:, 1:]
-                for i in range(det_labels_prd.shape[0]):
-                    det_scores_bias[i] = det_scores_bias[i][det_labels_prd[i]]
-                det_scores_bias = det_scores_bias[:, :prd_k]
-                det_scores_top_bias = det_scores_bias[det_scores_inds[:, 0], det_scores_inds[:, 1]]
-                det_scores_top_bias = det_scores_top_bias[cand_inds]
-            if 'prd_scores_spt' in res:
-                det_scores_spt = res['prd_scores_spt'][:, 1:]
-                for i in range(det_labels_prd.shape[0]):
-                    det_scores_spt[i] = det_scores_spt[i][det_labels_prd[i]]
-                det_scores_spt = det_scores_spt[:, :prd_k]
-                det_scores_top_spt = det_scores_spt[det_scores_inds[:, 0], det_scores_inds[:, 1]]
-                det_scores_top_spt = det_scores_top_spt[cand_inds]
+
             
             det_boxes_s_top = det_boxes_so_top[:, :4]
             det_boxes_o_top = det_boxes_so_top[:, 4:]
@@ -314,3 +394,32 @@ def _compute_pred_matches(gt_triplets, pred_triplets,
         for i in np.where(keep_inds)[0][inds]:
             pred_to_gt[i].append(int(gt_ind))
     return pred_to_gt
+
+
+def nms_cpu(dets, scores, thresh):
+    x1 = dets[:, 0]
+    y1 = dets[:, 1]
+    x2 = dets[:, 2]
+    y2 = dets[:, 3]
+
+    areas = (x2 - x1 + 1) * (y2 - y1 + 1)
+    order = scores.argsort()[::-1]
+
+    keep = []
+    while order.size > 0:
+        i = order.item(0)
+        keep.append(i)
+        xx1 = np.maximum(x1[i], x1[order[1:]])
+        yy1 = np.maximum(y1[i], y1[order[1:]])
+        xx2 = np.minimum(x2[i], x2[order[1:]])
+        yy2 = np.minimum(y2[i], y2[order[1:]])
+
+        w = np.maximum(0.0, xx2 - xx1 + 1)
+        h = np.maximum(0.0, yy2 - yy1 + 1)
+        inter = w * h
+        ovr = inter / (areas[i] + areas[order[1:]] - inter)
+
+        inds = np.where(ovr <= thresh)[0]
+        order = order[inds + 1]
+
+    return keep
