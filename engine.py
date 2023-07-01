@@ -204,7 +204,7 @@ def evaluate_rel_batch(outputs, targets, evaluator, evaluator_list):
 def evaluate_rel_batch_oi(outputs, targets, all_results):
 
     for batch, target in enumerate(targets):
-        print(target.keys())
+        print(outputs.keys())
         asd
         target_bboxes_scaled = rescale_bboxes(target['boxes'].cpu(), torch.flip(target['orig_size'],dims=[0]).cpu()).clone().numpy() # recovered boxes with original size
 
