@@ -232,6 +232,7 @@ def evaluate_rel_batch_oi(outputs, targets, all_results):
                            'gt_sbj_labels': gt_sub_labels,
                            'gt_obj_boxes': gt_obj_boxes,
                            'gt_obj_labels': gt_obj_labels,
-                           'gt_prd_labels': relation_idx[:, 2]
+                           'gt_prd_labels': relation_idx[:, 2],
+                           "all_boxes": target_bboxes_scaled
                            }
         all_results.append(img_result_dict)
