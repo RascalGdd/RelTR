@@ -215,6 +215,8 @@ def evaluate_rel_batch_oi(outputs, targets, all_results):
                                            torch.flip(target['orig_size'], dims=[0]).cpu()).clone().numpy()
 
         pred_all_scores, pred_all_classes = torch.max(outputs['pred_logits'][batch].softmax(-1)[:, :-1], dim=1)
+        pred_all_classes = pred_all_classes.cpu().clone().numpy()
+        pred_all_scores = pred_all_scores.cpu().clone().numpy()
         pred_sub_scores, pred_sub_classes = torch.max(outputs['sub_logits'][batch].softmax(-1)[:, :-1], dim=1)
         pred_obj_scores, pred_obj_classes = torch.max(outputs['obj_logits'][batch].softmax(-1)[:, :-1], dim=1)
 
