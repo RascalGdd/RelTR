@@ -98,6 +98,8 @@ def eval_rel_results(all_results, topk=100, do_val=True, do_vis=False):
             # filtered_classes_list = [list(item) for item in filtered_classes]
 
             det_boxes_sbj = res['sbj_boxes']  # (#num_rel, 4)
+            print(det_boxes_sbj)
+            print(filtered_preds_list)
             det_boxes_obj = res['obj_boxes']  # (#num_rel, 4)
             det_labels_sbj = res['sbj_labels']  # (#num_rel,)
             det_labels_obj = res['obj_labels']  # (#num_rel,)
@@ -137,7 +139,7 @@ def eval_rel_results(all_results, topk=100, do_val=True, do_vis=False):
                 print("after unique")
                 print(det_boxes_sbj.shape)
                 print(det_boxes_obj.shape)
-                print(det_labels_sbj.shape)
+                print(det_labels_p_top.shape)
                 # print(rel_prd_score_dist.shape)
                 # print(rel_trp_prd_scores.shape)
 
