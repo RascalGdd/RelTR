@@ -204,13 +204,17 @@ def evaluate_rel_batch(outputs, targets, evaluator, evaluator_list):
 def evaluate_rel_batch_oi(outputs, targets, all_results):
 
     for batch, target in enumerate(targets):
-        print(outputs.keys())
-        asd
+    #    print(outputs.keys()) #dict_keys(['pred_logits', 'pred_boxes', 'sub_logits', 'sub_boxes', 'obj_logits', 'obj_boxes', 'rel_logits', 'aux_outputs'])
+
         target_bboxes_scaled = rescale_bboxes(target['boxes'].cpu(), torch.flip(target['orig_size'],dims=[0]).cpu()).clone().numpy() # recovered boxes with original size
 
         sub_bboxes_scaled = rescale_bboxes(outputs['sub_boxes'][batch].cpu(), torch.flip(target['orig_size'],dims=[0]).cpu()).clone().numpy()
         obj_bboxes_scaled = rescale_bboxes(outputs['obj_boxes'][batch].cpu(), torch.flip(target['orig_size'],dims=[0]).cpu()).clone().numpy()
 
+        predict_bboxes_scaled = rescale_bboxes(outputs['pred_boxes'][batch].cpu(),
+                                           torch.flip(target['orig_size'], dims=[0]).cpu()).clone().numpy()
+
+        pred_all_scores, pred_all_classes = torch.max(outputs['pred_logits'][batch].softmax(-1)[:, :-1], dim=1)
         pred_sub_scores, pred_sub_classes = torch.max(outputs['sub_logits'][batch].softmax(-1)[:, :-1], dim=1)
         pred_obj_scores, pred_obj_classes = torch.max(outputs['obj_logits'][batch].softmax(-1)[:, :-1], dim=1)
 
@@ -235,7 +239,8 @@ def evaluate_rel_batch_oi(outputs, targets, all_results):
                            'gt_obj_boxes': gt_obj_boxes,
                            'gt_obj_labels': gt_obj_labels,
                            'gt_prd_labels': relation_idx[:, 2],
-                           "all_boxes": target_bboxes_scaled,
-                           "all_labels": target['labels'].cpu().clone().numpy(),
+                           "all_boxes": predict_bboxes_scaled,
+                           "all_scores": pred_all_scores,
+                           "all_labels": pred_all_classes,
                            }
         all_results.append(img_result_dict)
