@@ -103,10 +103,11 @@ def eval_rel_results(all_results, topk=100, do_val=True, do_vis=False):
             det_labels_obj = res['obj_labels']  # (#num_rel,)
             det_scores_sbj = res['sbj_scores']  # (#num_rel,)
             det_scores_obj = res['obj_scores']  # (#num_rel,)
-            rel_prd_score_dist = res['prd_scores_dist']
-            rel_prd_labels = res['prd_rel_label']
-            rel_prd_score = res['prd_rel_score']
-            rel_trp_prd_scores = res['prd_trp_score']
+            det_labels_p_top = res['prd_scores']
+            # rel_prd_score_dist = res['prd_scores_dist']
+            # rel_prd_labels = res['prd_rel_label']
+            # rel_prd_score = res['prd_rel_score']
+            # rel_trp_prd_scores = res['prd_trp_score']
             # pred_rel_pair_idxs = res['pred_rel_pair_idxs']
 
             if one2one:
@@ -124,17 +125,21 @@ def eval_rel_results(all_results, topk=100, do_val=True, do_vis=False):
                 det_labels_obj = det_labels_obj[save]  # (#num_rel,)
                 det_scores_sbj = det_scores_sbj[save]  # (#num_rel,)
                 det_scores_obj = det_scores_obj[save]  # (#num_rel,)
-                rel_prd_score_dist = rel_prd_score_dist[save]
-                rel_prd_labels = rel_prd_labels[save]
-                rel_prd_score = rel_prd_score[save]
-                rel_trp_prd_scores = rel_trp_prd_scores[save]
+                det_labels_p_top = det_labels_p_top[save]
+                det_scores_top = det_labels_p_top
+
+                # rel_prd_score_dist = rel_prd_score_dist[save]
+                # rel_prd_labels = rel_prd_labels[save]
+                # rel_prd_score = rel_prd_score[save]
+                # rel_trp_prd_scores = rel_trp_prd_scores[save]
+
 
                 print("after unique")
                 print(det_boxes_sbj.shape)
                 print(det_boxes_obj.shape)
                 print(det_labels_sbj.shape)
-                print(rel_prd_score_dist.shape)
-                print(rel_trp_prd_scores.shape)
+                # print(rel_prd_score_dist.shape)
+                # print(rel_trp_prd_scores.shape)
 
 
             # det_boxes_sbj = res['sbj_boxes']  # (#num_rel, 4)
@@ -188,10 +193,10 @@ def eval_rel_results(all_results, topk=100, do_val=True, do_vis=False):
             #     det_scores_spt = det_scores_spt[:, :prd_k]
             #     det_scores_top_spt = det_scores_spt[det_scores_inds[:, 0], det_scores_inds[:, 1]]
             #     det_scores_top_spt = det_scores_top_spt[cand_inds]
-            det_scores_top = rel_trp_prd_scores
+            # det_scores_top = rel_trp_prd_scores
             det_boxes_so_top = np.hstack((det_boxes_sbj,
                                           det_boxes_obj))
-            det_labels_p_top = rel_prd_labels - 1  # start from 0
+            # det_labels_p_top = rel_prd_labels - 1  # start from 0
 
             det_labels_spo_top = np.vstack(
                 (det_labels_sbj, det_labels_p_top, det_labels_obj)).transpose()
